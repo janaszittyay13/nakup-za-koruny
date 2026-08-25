@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Procvičování českých číslovek a cen. Übung: tschechische Zahlen und Preise.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#d81f26">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="Nákup za koruny">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Nákup za koruny – procvičování číslovek</title>
+<style>
+  :root{
+    --cerna:#1c1c1c; --cervena:#d81f26; --zluta:#ffd400;
+    --seda:#f2f0ec; --tmava-seda:#5c5c5c; --zelena:#1f7a3f; --bila:#fff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:0 0 40px 0;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    background:var(--seda); color:var(--cerna);
+    -webkit-text-size-adjust:100%;
+  }
+  header{background:var(--cervena); color:#fff; padding:18px 20px 20px;}
+  h1{margin:0; font-size:29px; letter-spacing:-0.6px; line-height:1;}
+  header p{margin:6px 0 0; font-size:14px; opacity:.92;}
+  .obal{max-width:640px; margin:0 auto; padding:0 16px;}
+  header .obal{padding:0;}
+  .hlavicka-obal{max-width:640px; margin:0 auto; padding:0 16px;}
+
+  nav{display:block; margin:16px 0 0;}
+  nav button{
+    display:inline-block; border:2px solid var(--cerna); background:var(--bila);
+    font:inherit; font-weight:700; font-size:14px; padding:8px 12px; margin:0 6px 6px 0;
+    cursor:pointer; border-radius:0;
+  }
+  nav button[aria-selected="true"]{background:var(--zluta);}
+  nav button:focus-visible, .tlacitko:focus-visible, input:focus-visible, .zbozi:focus-visible{
+    outline:3px solid var(--cervena); outline-offset:2px;
+  }
+
+  .karta{background:var(--bila); border:2px solid var(--cerna); padding:16px; margin-top:14px;}
+  .zadani{font-size:15px; font-weight:700; margin:0 0 2px;}
+  .zadani-de{font-size:13px; color:var(--tmava-seda); font-style:italic; margin:0 0 14px;}
+
+  .slovy{
+    background:var(--zluta); padding:14px 12px; text-align:center;
+    font-size:22px; font-weight:700; line-height:1.3;
+  }
+  .produkt{text-align:center; font-size:15px; color:var(--tmava-seda); margin:10px 0 0;}
+
+  .odpoved{margin-top:14px; text-align:center;}
+  input[type="text"]{
+    font:inherit; font-size:24px; font-weight:700; text-align:right;
+    width:170px; padding:8px 10px; border:2px solid var(--cerna); background:var(--bila);
+  }
+  .jednotka-kc{font-size:22px; font-weight:700; margin-left:6px;}
+
+  .volby{margin-top:14px;}
+  .volba{
+    display:block; width:100%; text-align:left; font:inherit; font-size:18px; font-weight:700;
+    padding:11px 14px; margin-bottom:8px; background:var(--bila);
+    border:2px solid var(--cerna); cursor:pointer;
+  }
+  .volba:hover{background:var(--zluta);}
+  .volba.spatne{background:#f7d7d8; border-color:var(--cervena);}
+  .volba.dobre{background:#d6efdd; border-color:var(--zelena);}
+
+  .tlacitko{
+    font:inherit; font-weight:700; font-size:16px; padding:11px 20px;
+    background:var(--cerna); color:var(--zluta); border:2px solid var(--cerna); cursor:pointer;
+  }
+  .tlacitko.vedlejsi{background:var(--bila); color:var(--cerna);}
+  .radek-tlacitek{margin-top:14px; text-align:center;}
+
+  .zpetna{margin-top:14px; padding:12px 14px; font-size:15px; line-height:1.45; display:none;}
+  .zpetna.ok{background:#d6efdd; border-left:6px solid var(--zelena); display:block;}
+  .zpetna.chyba{background:#f7d7d8; border-left:6px solid var(--cervena); display:block;}
+  .zpetna b{display:block; margin-bottom:3px;}
+
+  .stav{font-size:13px; color:var(--tmava-seda); margin-top:10px; text-align:center;}
+
+  /* košík */
+  .mrizka{margin-top:6px;}
+  .zbozi{
+    display:inline-block; vertical-align:top; width:calc(50% - 5px);
+    margin:0 8px 8px 0; padding:9px 10px; background:var(--bila);
+    border:2px solid var(--cerna); cursor:pointer; text-align:left; font:inherit;
+  }
+  .zbozi:nth-child(even){margin-right:0;}
+  .zbozi[aria-pressed="true"]{background:var(--zluta);}
+  .zbozi .n{display:block; font-weight:700; font-size:14px;}
+  .zbozi .p{display:block; font-size:17px; font-weight:700; margin-top:3px;}
+  .kosik-souhrn{margin-top:12px; font-size:15px; font-weight:700;}
+
+  .konec{text-align:center;}
+  .konec .skore{font-size:40px; font-weight:700; margin:6px 0;}
+  @media (max-width:420px){
+    h1{font-size:23px;} .slovy{font-size:19px;} .zbozi{width:100%; margin-right:0;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hlavicka-obal">
+    <h1>NÁKUP ZA KORUNY</h1>
+    <p>Procvičování číslovek a cen &middot; Zahlen und Preise üben &middot; A1–A2</p>
+  </div>
+</header>
+
+<div class="obal">
+  <nav role="tablist" aria-label="Cvičení">
+    <button role="tab" id="tab-0" aria-selected="true" onclick="spustKolo(0)">1. Napište číslicemi</button>
+    <button role="tab" id="tab-1" aria-selected="false" onclick="spustKolo(1)">2. Koruna nebo korun?</button>
+    <button role="tab" id="tab-2" aria-selected="false" onclick="spustKolo(2)">3. Nákupní košík</button>
+  </nav>
+  <div id="scena"></div>
+</div>
+
+<script>
+const CISLA = [1,2,3,4,5,9,12,21,22,31,34,39,62,79,100,189,299,1190];
+
+const ZBOZI = [
+  {cz:"Chléb (1 kg)", cena:39},
+  {cz:"Rohlík (1 kus)", cena:4},
+  {cz:"Mléko (1 l)", cena:22},
+  {cz:"Máslo (250 g)", cena:62},
+  {cz:"Vejce (10 kusů)", cena:79},
+  {cz:"Sýr eidam (1 kg)", cena:219},
+  {cz:"Jablka (1 kg)", cena:34},
+  {cz:"Kuřecí prsa (1 kg)", cena:189},
+  {cz:"Káva zrnková (1 kg)", cena:449},
+  {cz:"Čokoláda (100 g)", cena:31},
+  {cz:"Bílé víno (0,75 l)", cena:149},
+  {cz:"Ponožky (3 páry)", cena:89},
+  {cz:"Čepice", cena:249},
+  {cz:"Tričko", cena:299},
+  {cz:"Powerbanka", cena:590},
+  {cz:"Košile", cena:649},
+  {cz:"Konvice", cena:699},
+  {cz:"Svetr", cena:890},
+  {cz:"Džíny", cena:1190},
+  {cz:"Sluchátka", cena:1290},
+  {cz:"Boty", cena:1890},
+  {cz:"Mikrovlnka", cena:2490},
+  {cz:"Tiskárna", cena:3200},
+  {cz:"Zimní bunda", cena:2490},
+  {cz:"Mobilní telefon", cena:8990},
+  {cz:"Televize", cena:12990},
+  {cz:"Notebook", cena:17500}
+];
+
+/* ---------- číslo slovy ---------- */
+const JEDNOTKY = ["","jedna","dva","tři","čtyři","pět","šest","sedm","osm","devět"];
+const TEENS = ["deset","jedenáct","dvanáct","třináct","čtrnáct","patnáct","šestnáct","sedmnáct","osmnáct","devatenáct"];
+const DESITKY = ["","","dvacet","třicet","čtyřicet","padesát","šedesát","sedmdesát","osmdesát","devadesát"];
+
+function podSto(n){
+  if(n === 0) return "";
+  if(n < 10) return JEDNOTKY[n];
+  if(n < 20) return TEENS[n-10];
+  const d = Math.floor(n/10), j = n%10;
+  return DESITKY[d] + (j ? " " + JEDNOTKY[j] : "");
+}
+function stovky(n){
+  if(n === 0) return "";
+  if(n === 1) return "sto";
+  if(n === 2) return "dvě stě";
+  if(n === 3 || n === 4) return JEDNOTKY[n] + " sta";
+  return JEDNOTKY[n] + " set";
+}
+function tisice(n){
+  if(n === 0) return "";
+  if(n === 1) return "tisíc";
+  if(n >= 2 && n <= 4) return JEDNOTKY[n] + " tisíce";
+  return podSto(n) + " tisíc";
+}
+function slovy(n){
+  const t = Math.floor(n/1000), zbytek = n%1000;
+  const s = Math.floor(zbytek/100), zb = zbytek%100;
+  const text = [tisice(t), stovky(s), podSto(zb)].filter(Boolean).join(" ");
+  return n === 2 ? "dvě" : text;
+}
+/* 1 koruna | 2, 3, 4 koruny | 5 a víc korun.
+   U složených čísel (22, 34) se běžně říká „korun" – druhý tvar bereme taky. */
+function tvarKoruny(n){
+  if(n === 1) return "koruna";
+  if(n >= 2 && n <= 4) return "koruny";
+  return "korun";
+}
+function prijatelneTvary(n){
+  const j = n % 10;
+  if(n > 20 && j >= 2 && j <= 4) return ["korun","koruny"];
+  return [tvarKoruny(n)];
+}
+function cislice(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0"); }
+function zamichej(a){ const b = a.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]];} return b; }
+
+/* ---------- stav ---------- */
+let kolo = 0, otazky = [], index = 0, spravne = 0, zodpovezeno = false;
+const scena = document.getElementById("scena");
+
+function spustKolo(k){
+  kolo = k; index = 0; spravne = 0;
+  for(let i=0;i<3;i++) document.getElementById("tab-"+i).setAttribute("aria-selected", i===k ? "true":"false");
+  if(k === 0) otazky = zamichej(ZBOZI).slice(0,8);
+  if(k === 1) otazky = zamichej(CISLA).slice(0,8);
+  if(k === 2) otazky = [0];
+  vykresli();
+}
+
+function vykresli(){
+  zodpovezeno = false;
+  if(index >= otazky.length){ vykresliKonec(); return; }
+  if(kolo === 0) vykresliCislice();
+  if(kolo === 1) vykresliTvar();
+  if(kolo === 2) vykresliKosik();
+}
+
+/* ---------- kolo 1: slovy → číslicemi ---------- */
+function vykresliCislice(){
+  const q = otazky[index];
+  scena.innerHTML = `
+    <div class="karta">
+      <p class="zadani">Napište cenu číslicemi.</p>
+      <p class="zadani-de">Schreiben Sie den Preis in Ziffern.</p>
+      <div class="slovy">${slovy(q.cena)} ${tvarKoruny(q.cena)}</div>
+      <p class="produkt">${q.cz}</p>
+      <div class="odpoved">
+        <input type="text" id="vstup" inputmode="numeric" autocomplete="off" aria-label="Cena číslicemi">
+        <span class="jednotka-kc">Kč</span>
+      </div>
+      <div class="radek-tlacitek">
+        <button class="tlacitko" id="hlavni" onclick="zkontrolujCislice()">Zkontrolovat</button>
+      </div>
+      <div class="zpetna" id="zpetna"></div>
+      <p class="stav">Otázka ${index+1} z ${otazky.length} &middot; správně: ${spravne}</p>
+    </div>`;
+  const vstup = document.getElementById("vstup");
+  vstup.focus();
+  vstup.addEventListener("keydown", e => { if(e.key === "Enter") document.getElementById("hlavni").click(); });
+}
+function zkontrolujCislice(){
+  const q = otazky[index];
+  if(zodpovezeno){ index++; vykresli(); return; }
+  const raw = document.getElementById("vstup").value.replace(/[\s.\u00A0]/g,"").replace(/kč/i,"");
+  const zp = document.getElementById("zpetna");
+  if(raw === "") return;
+  zodpovezeno = true;
+  if(parseInt(raw,10) === q.cena){
+    spravne++;
+    zp.className = "zpetna ok";
+    zp.innerHTML = "<b>Správně.</b>" + q.cz + " stojí " + cislice(q.cena) + " Kč.";
+  } else {
+    zp.className = "zpetna chyba";
+    zp.innerHTML = "<b>Ještě jednou.</b>Správně je " + cislice(q.cena) + " Kč. Pozor na pořadí: <i>" + slovy(q.cena) + "</i>.";
+  }
+  document.getElementById("vstup").disabled = true;
+  document.getElementById("hlavni").textContent = index+1 < otazky.length ? "Další" : "Výsledek";
+  document.getElementById("hlavni").focus();
+}
+
+/* ---------- kolo 2: koruna / koruny / korun ---------- */
+function vykresliTvar(){
+  const n = otazky[index];
+  const volby = ["koruna","koruny","korun"];
+  scena.innerHTML = `
+    <div class="karta">
+      <p class="zadani">Doplňte správný tvar slova koruna.</p>
+      <p class="zadani-de">Ergänzen Sie die richtige Form von „koruna".</p>
+      <div class="slovy">${cislice(n)} Kč<br><span style="font-size:17px">= ${slovy(n)} …</span></div>
+      <div class="volby" id="volby">
+        ${volby.map(v => `<button class="volba" onclick="zkontrolujTvar('${v}')">${v}</button>`).join("")}
+      </div>
+      <div class="zpetna" id="zpetna"></div>
+      <div class="radek-tlacitek" id="dalsi-radek" style="display:none">
+        <button class="tlacitko" id="hlavni" onclick="index++; vykresli();">${index+1 < otazky.length ? "Další" : "Výsledek"}</button>
+      </div>
+      <p class="stav">Otázka ${index+1} z ${otazky.length} &middot; správně: ${spravne}</p>
+    </div>`;
+}
+function zkontrolujTvar(volba){
+  if(zodpovezeno) return;
+  zodpovezeno = true;
+  const n = otazky[index];
+  const ok = prijatelneTvary(n);
+  const zp = document.getElementById("zpetna");
+  document.querySelectorAll(".volba").forEach(b => {
+    if(ok.indexOf(b.textContent) > -1) b.classList.add("dobre");
+    else if(b.textContent === volba) b.classList.add("spatne");
+  });
+  if(ok.indexOf(volba) > -1){
+    spravne++;
+    zp.className = "zpetna ok";
+    zp.innerHTML = "<b>Správně.</b>" + slovy(n) + " " + volba + ".";
+  } else {
+    zp.className = "zpetna chyba";
+    zp.innerHTML = "<b>Ještě jednou.</b>Správně: " + slovy(n) + " " + ok[0] + ". Pravidlo: 1 koruna &middot; 2, 3, 4 koruny &middot; 5 a víc korun.";
+  }
+  if(ok.length > 1){
+    zp.innerHTML += "<br><i>U složených čísel (22, 34) je správně obojí: dvacet dva korun i dvacet dvě koruny.</i>";
+  }
+  document.getElementById("dalsi-radek").style.display = "block";
+  document.getElementById("hlavni").focus();
+}
+
+/* ---------- kolo 3: košík ---------- */
+let kosik = [];
+function vykresliKosik(){
+  kosik = [];
+  const nabidka = zamichej(ZBOZI).slice(0,6);
+  scena.innerHTML = `
+    <div class="karta">
+      <p class="zadani">Vyberte tři věci a spočítejte, kolik zaplatíte.</p>
+      <p class="zadani-de">Wählen Sie drei Waren und rechnen Sie zusammen.</p>
+      <div class="mrizka" id="mrizka">
+        ${nabidka.map((z,i) => `
+          <button class="zbozi" aria-pressed="false" onclick="prepni(${i})" id="z${i}">
+            <span class="n">${z.cz}</span>
+            <span class="p">${cislice(z.cena)} Kč</span>
+          </button>`).join("")}
+      </div>
+      <p class="kosik-souhrn" id="souhrn">V košíku: 0 věcí</p>
+      <div class="odpoved">
+        <input type="text" id="vstup" inputmode="numeric" autocomplete="off" aria-label="Celková cena">
+        <span class="jednotka-kc">Kč</span>
+      </div>
+      <div class="radek-tlacitek">
+        <button class="tlacitko" id="hlavni" onclick="zkontrolujKosik()">Zkontrolovat</button>
+        <button class="tlacitko vedlejsi" onclick="spustKolo(2)">Nový nákup</button>
+      </div>
+      <div class="zpetna" id="zpetna"></div>
+    </div>`;
+  window._nabidka = nabidka;
+}
+function prepni(i){
+  const b = document.getElementById("z"+i);
+  const je = kosik.indexOf(i);
+  if(je > -1){ kosik.splice(je,1); b.setAttribute("aria-pressed","false"); }
+  else { kosik.push(i); b.setAttribute("aria-pressed","true"); }
+  document.getElementById("souhrn").textContent = "V košíku: " + kosik.length + (kosik.length === 1 ? " věc" : kosik.length < 5 ? " věci" : " věcí");
+}
+function zkontrolujKosik(){
+  const zp = document.getElementById("zpetna");
+  if(kosik.length === 0){
+    zp.className = "zpetna chyba";
+    zp.innerHTML = "<b>Vyberte zboží.</b>Klikněte na tři věci v nabídce.";
+    return;
+  }
+  const soucet = kosik.reduce((s,i) => s + window._nabidka[i].cena, 0);
+  const raw = document.getElementById("vstup").value.replace(/[\s.\u00A0]/g,"");
+  if(raw === "") return;
+  if(parseInt(raw,10) === soucet){
+    zp.className = "zpetna ok";
+    zp.innerHTML = "<b>Správně.</b>Zaplatíte " + cislice(soucet) + " Kč – " + slovy(soucet) + " " + tvarKoruny(soucet) + ".";
+  } else {
+    zp.className = "zpetna chyba";
+    zp.innerHTML = "<b>Ještě jednou.</b>Váš košík stojí " + cislice(soucet) + " Kč. Sečtěte ceny znovu.";
+  }
+}
+
+/* ---------- konec kola ---------- */
+function vykresliKonec(){
+  scena.innerHTML = `
+    <div class="karta konec">
+      <p class="zadani">Hotovo.</p>
+      <div class="skore">${spravne} / ${otazky.length}</div>
+      <p class="zadani-de">${spravne === otazky.length ? "Alles richtig. Weiter so!" : "Wiederholen Sie die Runde – Wiederholung ist der halbe Weg."}</p>
+      <div class="radek-tlacitek">
+        <button class="tlacitko" onclick="spustKolo(${kolo})">Zkusit znovu</button>
+        <button class="tlacitko vedlejsi" onclick="spustKolo(${(kolo+1)%3})">Další cvičení</button>
+      </div>
+    </div>`;
+}
+
+spustKolo(0);
+
+/* offline režim – aplikace funguje i bez internetu */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
