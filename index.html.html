@@ -372,7 +372,7 @@ function zkontrolujKosik(){
   const zp = document.getElementById("zpetna");
   if(kosik.length === 0){
     zp.className = "zpetna chyba";
-    zp.innerHTML = "<b>Vyberte zboží.</b>Klikněte na jednu věc v nabídce, nebo na víc.";
+  zp.innerHTML = "<b>Vyberte zboží.</b>Klikněte na jednu věc v nabídce, nebo na víc.";
     return;
   }
   const soucet = kosik.reduce((s,i) => s + window._nabidka[i].cena, 0);
