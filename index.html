@@ -91,9 +91,10 @@
   }
   .zbozi:nth-child(even){margin-right:0;}
   .zbozi[aria-pressed="true"]{background:var(--zluta);}
+  .zbozi[aria-pressed="true"] .p{color:var(--cerna);}
   .zbozi .n{display:block; font-weight:700; font-size:14px;}
-  .zbozi .p{display:block; font-size:17px; font-weight:700; margin-top:3px;}
-  .kosik-souhrn{margin-top:12px; font-size:15px; font-weight:700;}
+  .zbozi .p{display:block; font-size:14px; font-weight:700; margin-top:4px; line-height:1.25; color:#5c5c5c;}
+  .kosik-souhrn{margin-top:12px; font-size:15px; font-weight:700; line-height:1.35;}
 
   .konec{text-align:center;}
   .konec .skore{font-size:40px; font-weight:700; margin:6px 0;}
@@ -197,6 +198,24 @@ function prijatelneTvary(n){
   return [tvarKoruny(n)];
 }
 function cislice(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0"); }
+/* Generuje čísla pro 1. kolo tak, aby se neopakovaly stejné konce.
+   Každá otázka končí jinou jednotkou, desítka se nesmí objevit víc než dvakrát,
+   délka je namíchaná: dvojciferná, trojciferná, čtyřciferná. */
+function generujCisla(pocet){
+  const jednotky = zamichej([1,2,3,4,5,6,7,8,9]).slice(0, pocet);
+  const rady = zamichej([2,2,3,3,3,4,4,4]).slice(0, pocet);
+  const pouziteDesitky = [];
+  return jednotky.map(function(u, i){
+    let t, pokus = 0;
+    do { t = Math.floor(Math.random()*10); pokus++; }
+    while(pouziteDesitky.filter(x => x === t).length >= 2 && pokus < 30);
+    pouziteDesitky.push(t);
+    let n = t*10 + u;
+    if(rady[i] >= 3) n += (1 + Math.floor(Math.random()*9)) * 100;
+    if(rady[i] >= 4) n += (1 + Math.floor(Math.random()*9)) * 1000;
+    return n;
+  });
+}
 function zamichej(a){ const b = a.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]];} return b; }
 
 /* ---------- stav ---------- */
@@ -206,7 +225,7 @@ const scena = document.getElementById("scena");
 function spustKolo(k){
   kolo = k; index = 0; spravne = 0;
   for(let i=0;i<3;i++) document.getElementById("tab-"+i).setAttribute("aria-selected", i===k ? "true":"false");
-  if(k === 0) otazky = zamichej(ZBOZI).slice(0,8);
+  if(k === 0) otazky = generujCisla(8);
   if(k === 1) otazky = zamichej(CISLA).slice(0,8);
   if(k === 2) otazky = [0];
   vykresli();
@@ -222,13 +241,12 @@ function vykresli(){
 
 /* ---------- kolo 1: slovy → číslicemi ---------- */
 function vykresliCislice(){
-  const q = otazky[index];
+  const n = otazky[index];
   scena.innerHTML = `
     <div class="karta">
       <p class="zadani">Napište cenu číslicemi.</p>
       <p class="zadani-de">Schreiben Sie den Preis in Ziffern.</p>
-      <div class="slovy">${slovy(q.cena)} ${tvarKoruny(q.cena)}</div>
-      <p class="produkt">${q.cz}</p>
+      <div class="slovy">${slovy(n)} ${tvarKoruny(n)}</div>
       <div class="odpoved">
         <input type="text" id="vstup" inputmode="numeric" autocomplete="off" aria-label="Cena číslicemi">
         <span class="jednotka-kc">Kč</span>
@@ -244,19 +262,19 @@ function vykresliCislice(){
   vstup.addEventListener("keydown", e => { if(e.key === "Enter") document.getElementById("hlavni").click(); });
 }
 function zkontrolujCislice(){
-  const q = otazky[index];
+  const n = otazky[index];
   if(zodpovezeno){ index++; vykresli(); return; }
   const raw = document.getElementById("vstup").value.replace(/[\s.\u00A0]/g,"").replace(/kč/i,"");
   const zp = document.getElementById("zpetna");
   if(raw === "") return;
   zodpovezeno = true;
-  if(parseInt(raw,10) === q.cena){
+  if(parseInt(raw,10) === n){
     spravne++;
     zp.className = "zpetna ok";
-    zp.innerHTML = "<b>Správně.</b>" + q.cz + " stojí " + cislice(q.cena) + " Kč.";
+    zp.innerHTML = "<b>Správně.</b>" + slovy(n) + " " + tvarKoruny(n) + " = " + cislice(n) + " Kč.";
   } else {
     zp.className = "zpetna chyba";
-    zp.innerHTML = "<b>Ještě jednou.</b>Správně je " + cislice(q.cena) + " Kč. Pozor na pořadí: <i>" + slovy(q.cena) + "</i>.";
+    zp.innerHTML = "<b>Ještě jednou.</b>Správně je " + cislice(n) + " Kč. Čtěte po částech: <i>" + slovy(n) + "</i>.";
   }
   document.getElementById("vstup").disabled = true;
   document.getElementById("hlavni").textContent = index+1 < otazky.length ? "Další" : "Výsledek";
@@ -314,13 +332,13 @@ function vykresliKosik(){
   const nabidka = zamichej(ZBOZI).slice(0,6);
   scena.innerHTML = `
     <div class="karta">
-      <p class="zadani">Vyberte tři věci a spočítejte, kolik zaplatíte.</p>
-      <p class="zadani-de">Wählen Sie drei Waren und rechnen Sie zusammen.</p>
+      <p class="zadani">Ceny jsou slovy. Vyberte tři věci a napište číslicemi, kolik zaplatíte.</p>
+      <p class="zadani-de">Die Preise stehen in Worten. Wählen Sie drei Waren und schreiben Sie die Summe in Ziffern.</p>
       <div class="mrizka" id="mrizka">
         ${nabidka.map((z,i) => `
           <button class="zbozi" aria-pressed="false" onclick="prepni(${i})" id="z${i}">
             <span class="n">${z.cz}</span>
-            <span class="p">${cislice(z.cena)} Kč</span>
+            <span class="p">${slovy(z.cena)} ${tvarKoruny(z.cena)}</span>
           </button>`).join("")}
       </div>
       <p class="kosik-souhrn" id="souhrn">V košíku: 0 věcí</p>
@@ -341,7 +359,14 @@ function prepni(i){
   const je = kosik.indexOf(i);
   if(je > -1){ kosik.splice(je,1); b.setAttribute("aria-pressed","false"); }
   else { kosik.push(i); b.setAttribute("aria-pressed","true"); }
-  document.getElementById("souhrn").textContent = "V košíku: " + kosik.length + (kosik.length === 1 ? " věc" : kosik.length < 5 ? " věci" : " věcí");
+  const souhrn = document.getElementById("souhrn");
+  const pocet = kosik.length;
+  const slovoVec = pocet === 1 ? " věc" : pocet < 5 ? " věci" : " věcí";
+  let text = "V košíku: " + pocet + slovoVec;
+  if(pocet > 0){
+    text += " – " + kosik.map(k => window._nabidka[k].cz).join(", ");
+  }
+  souhrn.textContent = text;
 }
 function zkontrolujKosik(){
   const zp = document.getElementById("zpetna");
@@ -353,12 +378,13 @@ function zkontrolujKosik(){
   const soucet = kosik.reduce((s,i) => s + window._nabidka[i].cena, 0);
   const raw = document.getElementById("vstup").value.replace(/[\s.\u00A0]/g,"");
   if(raw === "") return;
+  const rozpis = kosik.map(k => window._nabidka[k].cz + " " + cislice(window._nabidka[k].cena)).join(" + ") + " = " + cislice(soucet) + " Kč";
   if(parseInt(raw,10) === soucet){
     zp.className = "zpetna ok";
-    zp.innerHTML = "<b>Správně.</b>Zaplatíte " + cislice(soucet) + " Kč – " + slovy(soucet) + " " + tvarKoruny(soucet) + ".";
+    zp.innerHTML = "<b>Správně.</b>" + rozpis + "<br>Zaplatíte " + slovy(soucet) + " " + tvarKoruny(soucet) + ".";
   } else {
     zp.className = "zpetna chyba";
-    zp.innerHTML = "<b>Ještě jednou.</b>Váš košík stojí " + cislice(soucet) + " Kč. Sečtěte ceny znovu.";
+    zp.innerHTML = "<b>Ještě jednou.</b>" + rozpis;
   }
 }
 
